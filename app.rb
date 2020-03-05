@@ -17,6 +17,7 @@ after { puts; }                                                                 
 
 events_table = DB.from(:events)
 rsvps_table = DB.from(:rsvps)
+users_table = DB.from(:users)
 
 get "/" do
     puts "params: #{params}"
@@ -60,12 +61,18 @@ get "/events/:id/rsvps/create" do
 end
 
 get "/users/new" do
+    
     view "new_user"
 end
 
 get "/users/create" do
     puts "params: #{params}"
-
+  #next, want to insert a row in the rsvps table with the rsvp form data
+    users_table.insert(
+        name: params["name"],
+        email: params["email"],
+        password: params["password"],
+    )
     view "create_user"
 end
 
