@@ -52,7 +52,7 @@ get "/events/:id/rsvps/create" do
     #next, want to insert a row in the rsvps table with the rsvp form data
     rsvps_table.insert(
         event_id: @event[:id],
-        # user_id: ...,
+        user_id: session["user_id"],
         comments: params["comments"],
         going: params["going"]
     )
@@ -64,7 +64,7 @@ get "/users/new" do
     view "new_user"
 end
 
-get "/users/create" do
+post "/users/create" do
     puts "params: #{params}"
   #next, want to insert a row in the rsvps table with the rsvp form data
     users_table.insert(
@@ -79,7 +79,7 @@ get "/logins/new" do
     view "new_login"
 end
 
-get "/logins/create" do
+post "/logins/create" do
     puts "params: #{params}"
  
     #first, is there a user with the params{"email"}
@@ -87,6 +87,9 @@ get "/logins/create" do
     if @user
         #second, if there is, does the password match?
         if @user[:password] == params["password"]
+            #know the user is logged in
+            session["user_id"] = @user[:id]
+            
             view "create_login"
         else
             view "create_login_failed"
