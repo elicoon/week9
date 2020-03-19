@@ -19,6 +19,10 @@ events_table = DB.from(:events)
 rsvps_table = DB.from(:rsvps)
 users_table = DB.from(:users)
 
+before do
+    @current_user = users_table.where(id: session["user_id"]).to_a[0]
+end
+
 get "/" do
     puts "params: #{params}"
 
@@ -29,11 +33,11 @@ end
 
 get "/events/:id" do
     puts "params: #{params}"
-
     @event = events_table.where(id: params[:id]).to_a[0]
     pp @event
     @rsvps = rsvps_table.where(event_id: @event[:id]).to_a
     @going_count = rsvps_table.where(event_id: @event[:id], going: true).count
+    @users_table = users_table
     view "event"
 end
 
@@ -41,6 +45,7 @@ get "/events/:id/rsvps/new" do
     puts "params: #{params}"
 
     @event = events_table.where(id: params[:id]).to_a[0]
+    
     view "new_rsvp"
 end
 
@@ -70,7 +75,7 @@ post "/users/create" do
     users_table.insert(
         name: params["name"],
         email: params["email"],
-        password: params["password"],
+        password: BCrypt::Password.create(params["password"])
     )
     view "create_user"
 end
@@ -86,7 +91,7 @@ post "/logins/create" do
     @user = users_table.where(email: params["email"]).to_a[0]
     if @user
         #second, if there is, does the password match?
-        if @user[:password] == params["password"]
+        if BCrypt::Password.new(@user[:password]) == params["password"]
             #know the user is logged in
             session["user_id"] = @user[:id]
             
@@ -100,5 +105,6 @@ post "/logins/create" do
 end
 
 get "/logout" do
+    session["user_id"] = nil
     view "logout"
 end
